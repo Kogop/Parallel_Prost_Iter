@@ -4,7 +4,7 @@
 
 using namespace std;
 
-double eps = 0.001;
+double eps = 0.00000001;
 static const int n = 3;
 double masA[n][n] = { { 0.0, -0.1, -0.1 },
                       { -0.2, 0.0, -0.1 },
@@ -18,6 +18,7 @@ int counter = 0, counter1[1] = { 0 };
 double rbufA[n*n];
 double rbuf[n*n];
 double rbufB[n*n];
+double rbufC[n * n];
 
 
 int main() {
@@ -36,26 +37,32 @@ int main() {
         x0[i] = masB[i];
     }
 
-    MPI_Bcast(masA, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(masA, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Scatter(masB, 1, MPI_DOUBLE, rbufA, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     do
     {
+        if (rbufC[rank]!=0.0)
+        {
+            x0[rank] = rbufC[rank];
+            cout << "rank = " << rank << " rbufC prisvaemoviy = " << rbufC[rank] << endl;
+        }
+       
         x[rank] = 0.0;
         for (int j = 0; j < n; j++) {
             x[rank] += masA[rank][j] * x0[j];
         };
-        cout << "rank = " << rank << "  do + bufa x  = " << x[rank] << endl;
-        cout << "rank = " << rank << "  do + bufa x0  = " << x0[rank] << endl;
-        cout << "rank = " << rank << "  do + bufa x - x0  = " << x[rank] - x0[rank] << endl;
-        cout << "rank = " << rank << "  do + bufa |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
+       // cout << "rank = " << rank << "  do + bufa x  = " << x[rank] << endl;
+       // cout << "rank = " << rank << "  do + bufa x0  = " << x0[rank] << endl;
+       // cout << "rank = " << rank << "  do + bufa x - x0  = " << x[rank] - x0[rank] << endl;
+       // cout << "rank = " << rank << "  do + bufa |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
 
         x[rank] += rbufA[0];
 
         //cout << "rank = " << rank << "  posle + bufa x  = " << x[rank] << endl;
         //cout << "rank = " << rank << "  posle + bufa x0  = " << x0[rank] << endl;
         //cout << "rank = " << rank << "  posle + bufa x - x0  = " << x[rank] - x0[rank] << endl;
-        cout << "rank = " << rank << "  posle + bufa pered obnuleniem max1 |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
+        //cout << "rank = " << rank << "  posle + bufa pered obnuleniem max1 |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
         max1[rank] = 0.0;
 
 
@@ -64,12 +71,20 @@ int main() {
             cout << "rank = " << rank << " max1  = " << max1[rank] << endl;
         }
         x0[rank] = x[rank];
-        /*     cout << "rank = " << rank << " x  = " << x[rank] << endl;
-               cout << "rank = " << rank << " x0  = " << x0[rank] << endl;
-               cout << "rank = " << rank << " x - x0  = " << x[rank] - x0[rank] << endl;
-               cout << "rank = " << rank << " |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;*/
+
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Gather(&x0[rank], 1, MPI_DOUBLE, rbufC, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(rbufC, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+
+               //cout << "rank = " << rank << " x  = " << x[rank] << endl;
+               cout << "rank = " << rank << " rbufC  = " << rbufC[rank] << endl;
+              // cout << "rank = " << rank << " x - x0  = " << x[rank] - x0[rank] << endl;
+              // cout << "rank = " << rank << " |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
             // cout << "rank = " << rank << " max1 1 = " << max1[0] << endl;
         counter++;
+        cout << " counter Iter = " << counter << endl;
         // cout << "rank = " << rank << "max1 = " << max1[rank] << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -78,7 +93,7 @@ int main() {
         counter1[0] = 0;
         if (rank == 0)
         {
-            cout << " counter Iter = " << counter << endl;
+            //cout << " counter Iter = " << counter << endl;
             //cout << "rank = " << rank << " max1 1 = " << rbufB[0] << endl;
             //cout << "rank = " << rank << " max1 2 = " << rbufB[1] << endl;
             //cout << "rank = " << rank << " max1 3 = " << rbufB[2] << endl;
@@ -87,7 +102,7 @@ int main() {
                 if (rbufB[i] < eps)
                 {
                     counter1[0]++;
-                    cout << "rank = " << rank << " counter = " << counter1[0] << endl;
+                    cout << "rank = " << rank << " counter1 = " << counter1[0] << endl;
                     //cout << "rank = " << rank << " rbufB = " << rbufB[i] << endl;
                     fflush(stdout);
                 }
