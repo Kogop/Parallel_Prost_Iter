@@ -5,19 +5,19 @@
 using namespace std;
 
 double eps = 0.001;
-static const int n = 4;
-double masA[n][n] = { { 0.05, -0.06, -0.12, 0.14 },
-                      { 0.04, -0.12, 0.68, 0.11 },
-                      { 0.34, 0.08, -0.06, 0.44 },
-                      { 0.11, 0.12, -0.03, -0.8 } };
+static const int n = 3;
+double masA[n][n] = { { 0.0, -0.1, -0.1 },
+                      { -0.2, 0.0, -0.1 },
+                      { -0.2, -0.2, 0.0 },
+                      };
 
-double masB[n] = { -2.17, 1.4, -2.1, -0.8 };
+double masB[n] = { 1.2, 1.3, 1.4 };
 
-long double x[n] = { 0.0, 0.0, 0.0, 0.0 }, x0[n] = { 0.0, 0.0, 0.0, 0.0 }, max1[n] = { 0.0, 0.0, 0.0, 0.0 };
+long double x[n] = { 0.0, 0.0, 0.0}, x0[n] = { 0.0, 0.0, 0.0 }, max1[n] = { 0.0, 0.0, 0.0 };
 int counter = 0, counter1[1] = { 0 };
 double rbufA[n*n];
-double rbuf[n];
-double rbufB[n];
+double rbuf[n*n];
+double rbufB[n*n];
 
 
 int main() {
@@ -44,15 +44,12 @@ int main() {
         x[rank] = 0.0;
         for (int j = 0; j < n; j++) {
             x[rank] += masA[rank][j] * x0[j];
-        }
+        };
         cout << "rank = " << rank << "  do + bufa x  = " << x[rank] << endl;
         cout << "rank = " << rank << "  do + bufa x0  = " << x0[rank] << endl;
         cout << "rank = " << rank << "  do + bufa x - x0  = " << x[rank] - x0[rank] << endl;
         cout << "rank = " << rank << "  do + bufa |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;
-    /*    for (size_t i = 0; i < n; i++)
-        {
-            cout << "rank = " << rank << "  rbufA   = " << rbufA[i] << endl;
-        }*/
+
         x[rank] += rbufA[0];
 
         //cout << "rank = " << rank << "  posle + bufa x  = " << x[rank] << endl;
@@ -67,39 +64,37 @@ int main() {
             cout << "rank = " << rank << " max1  = " << max1[rank] << endl;
         }
         x0[rank] = x[rank];
- /*       cout << "rank = " << rank << " x  = " << x[rank] << endl;
-        cout << "rank = " << rank << " x0  = " << x0[rank] << endl;
-        cout << "rank = " << rank << " x - x0  = " << x[rank] - x0[rank] << endl;
-        cout << "rank = " << rank << " |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;*/
-       // cout << "rank = " << rank << " max1 1 = " << max1[0] << endl;
+        /*     cout << "rank = " << rank << " x  = " << x[rank] << endl;
+               cout << "rank = " << rank << " x0  = " << x0[rank] << endl;
+               cout << "rank = " << rank << " x - x0  = " << x[rank] - x0[rank] << endl;
+               cout << "rank = " << rank << " |x - x0|  = " << fabs(x[rank] - x0[rank]) << endl;*/
+            // cout << "rank = " << rank << " max1 1 = " << max1[0] << endl;
         counter++;
-       // cout << "rank = " << rank << "max1 = " << max1[rank] << endl;
+        // cout << "rank = " << rank << "max1 = " << max1[rank] << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
         MPI_Gather(&max1[rank], 1, MPI_DOUBLE, rbufB, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        
-        //MPI_Gather(&max1[0], n, MPI_DOUBLE, rbufB, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
         counter1[0] = 0;
         if (rank == 0)
         {
             cout << " counter Iter = " << counter << endl;
-            cout << "rank = " << rank << " max1 1 = " << rbufB[0] << endl;
-            cout << "rank = " << rank << " max1 2 = " << rbufB[1] << endl;
-            cout << "rank = " << rank << " max1 3 = " << rbufB[2] << endl;
-            cout << "rank = " << rank << " max1 4 = " << rbufB[3] << endl;
-            for (int i = 0; i < 4; i++) {
-                if (rbufB[i] <= eps)
+            //cout << "rank = " << rank << " max1 1 = " << rbufB[0] << endl;
+            //cout << "rank = " << rank << " max1 2 = " << rbufB[1] << endl;
+            //cout << "rank = " << rank << " max1 3 = " << rbufB[2] << endl;
+            //cout << "rank = " << rank << " max1 4 = " << rbufB[3] << endl;
+            for (int i = 0; i < n; i++) {
+                if (rbufB[i] < eps)
                 {
                     counter1[0]++;
-                    cout << "rank = "<< rank << " counter = "<<counter1[0] << endl;
-                    cout << "rank = " << rank << " rbufB = " << rbufB[i] << endl;
+                    cout << "rank = " << rank << " counter = " << counter1[0] << endl;
+                    //cout << "rank = " << rank << " rbufB = " << rbufB[i] << endl;
                     fflush(stdout);
                 }
-            }            
+            }
         }
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Bcast(counter1, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        
     } while (counter1[0] != n);
 
     MPI_Gather(&x[rank], 1, MPI_DOUBLE, rbuf, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -111,10 +106,7 @@ int main() {
         {
             cout << "x" << i + 1 << "=" << rbuf[i] << " " << endl;
         }
-
     }
-
-
 
     endtime = MPI_Wtime();
     printf("vipolnenie zanyalo %f seconds\n", endtime - starttime);
