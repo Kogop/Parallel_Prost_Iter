@@ -4,7 +4,7 @@
 
 using namespace std;
 
-double eps = 0.00001;   // pri zadannoy tochnosti, idelno tochniy otvet s zadannoy matrix poluchaetsya za 11 iterasiy
+double eps = 0.00001;   // pri zadannoy tochnosti, idelno tochniy otvet s zadannoy matrix poluchaetsya za 11 iterasiy na 3 proccesah
 static const int n = 3;
 double masA[n][n] = { { 0.0, -0.1, -0.1 },
                       { -0.2, 0.0, -0.1 },
