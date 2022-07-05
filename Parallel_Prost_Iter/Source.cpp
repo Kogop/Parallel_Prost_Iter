@@ -42,10 +42,13 @@ int main() {
     {
         MPI_Bcast(masA, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         MPI_Bcast(masB, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        MPI_Bcast(rbufC, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        for (size_t i = 0; i < n; i++)
+
+        if (rbufC != NULL)
         {
-            x0[i] = rbufC[i];
+            for (size_t i = 0; i < n; i++)
+            {
+                x0[i] = rbufC[i];
+            }
         }
        
         x[rank] = 0.0;
@@ -64,12 +67,9 @@ int main() {
 
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Gather(&x0[rank], 1, MPI_DOUBLE, rbufC, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-        counter++;
-
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(rbufC, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         MPI_Gather(&max1[rank], 1, MPI_DOUBLE, rbufB, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
+        counter++;
         counter1[0] = 0;
         if (rank == 0)
         {
