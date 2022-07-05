@@ -15,7 +15,7 @@ double masB[n] = { 1.2, 1.3, 1.4 };   // stolbec svobodnih chlenov
 
 long double x[n], x0[n], max1[n];
 int counter = 0, counter1[1] = { 0 };
-double rbufA[n * n];
+double rbufA[n * n];   // buffers neobhodimie dlya otpravki dannih mej rankov
 double rbuf[n * n];
 double rbufB[n * n];
 double rbufC[n * n];
